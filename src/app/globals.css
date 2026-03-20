@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nexus-bg: #0f172a;
+  --nexus-accent: #38bdf8;
+  --nexus-muted: #64748b;
+}
+
+body {
+  @apply bg-slate-900 text-slate-100 antialiased;
+}
