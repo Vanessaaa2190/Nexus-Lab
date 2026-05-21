@@ -3,8 +3,6 @@
  * API 文档: https://develop-docs.second.me/zh/docs/api-reference/secondme
  */
 
-import { NextResponse } from "next/server";
-
 const API_BASE = process.env.SECONDME_API_BASE_URL ?? "https://api.mindverse.com/gate/lab";
 const OAUTH_URL = process.env.SECONDME_OAUTH_URL ?? "https://go.second.me/oauth/";
 const COOKIE_NAME = "nexuslab_session";
@@ -32,15 +30,10 @@ function getCookieHeader(cookieHeader: string | null): SessionData | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
   if (!match) return null;
-  const raw = match[1];
   try {
-    return JSON.parse(decodeURIComponent(raw)) as SessionData;
+    return JSON.parse(decodeURIComponent(match[1])) as SessionData;
   } catch {
-    try {
-      return JSON.parse(raw) as SessionData;
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -118,11 +111,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<SessionD
 
 export function buildGithubLoginUrl(state: string, redirectUri: string): string {
   const clientId = process.env.GITHUB_CLIENT_ID;
-  if (!clientId) {
-    throw new Error(
-      "Missing GITHUB_CLIENT_ID. 本地请在 .env.local 配置；线上请在 Zeabur/Vercel 环境变量中配置后重新部署。"
-    );
-  }
+  if (!clientId) throw new Error("Missing GITHUB_CLIENT_ID");
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -209,27 +198,8 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
   return json.data ?? {};
 }
 
-/** 写入 cookie 的会话字段（不含 user，避免超过 4KB 限制） */
-function sessionCookiePayload(data: SessionData): Omit<SessionData, "user"> {
-  return {
-    provider: data.provider,
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken ?? "",
-    expiresAt: data.expiresAt,
-  };
-}
-
-export function setSessionCookie(res: NextResponse, data: SessionData): void {
-  res.cookies.set(COOKIE_NAME, JSON.stringify(sessionCookiePayload(data)), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60,
-  });
-}
-
 export function sessionToCookie(data: SessionData): string {
-  const value = encodeURIComponent(JSON.stringify(sessionCookiePayload(data)));
+  const value = encodeURIComponent(JSON.stringify(data));
   const maxAge = 30 * 24 * 60 * 60;
   return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
 }
