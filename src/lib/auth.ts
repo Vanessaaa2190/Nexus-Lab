@@ -118,7 +118,11 @@ export async function refreshAccessToken(refreshToken: string): Promise<SessionD
 
 export function buildGithubLoginUrl(state: string, redirectUri: string): string {
   const clientId = process.env.GITHUB_CLIENT_ID;
-  if (!clientId) throw new Error("Missing GITHUB_CLIENT_ID");
+  if (!clientId) {
+    throw new Error(
+      "Missing GITHUB_CLIENT_ID. 本地请在 .env.local 配置；线上请在 Zeabur/Vercel 环境变量中配置后重新部署。"
+    );
+  }
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,

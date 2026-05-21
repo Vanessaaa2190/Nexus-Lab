@@ -28,12 +28,26 @@
    ```
 4. 打开 http://localhost:3000 ，点击「使用 Second Me 登录进入实验室」。
 
-## 部署（Vercel）
+## 部署（Zeabur / Vercel 等）
 
-1. 将本目录或仓库连接到 Vercel。
-2. 在 Vercel 项目设置中配置环境变量（同上），并将 `SECONDME_REDIRECT_URI` 改为 `https://你的域名/api/auth/callback`。
-3. 在 Second Me 开发者平台中，将应用的「重定向 URI」增加一条：`https://你的域名/api/auth/callback`。
-4. 部署后提交到比赛时填写该可访问的 Demo 地址。
+`.env.local` **不会**随 Git 上传，必须在云平台「环境变量」里单独配置。
+
+**GitHub 登录（推荐，必填）：**
+
+| 变量名 | 说明 |
+|--------|------|
+| `GITHUB_CLIENT_ID` | GitHub OAuth App 的 Client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App 的 Client Secret |
+
+在 GitHub OAuth App 中把 **Authorization callback URL** 设为：
+
+`https://你的线上域名/api/auth/github/callback`
+
+（Zeabur 示例：`https://nexus-lab-xxx.zeabur.app/api/auth/github/callback`）
+
+配置后**重新部署**一次，环境变量才会生效。
+
+**Second Me（可选）：** 若仍使用 Second Me，额外配置 `SECONDME_CLIENT_ID`、`SECONDME_CLIENT_SECRET`、`SECONDME_REDIRECT_URI=https://你的域名/api/auth/callback`。
 
 ## 知乎特别奖（可选）
 
