@@ -31,11 +31,22 @@ function HomeContent() {
           </p>
         )}
         <Link
-          href="/api/auth/login"
+          href="/api/auth/github/login"
           className="inline-flex items-center justify-center rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-medium px-6 py-3 transition-colors"
         >
-          使用 Second Me 登录进入实验室
+          使用 GitHub 登录进入实验室
         </Link>
+        <div className="mt-3">
+          <Link
+            href="/api/auth/login"
+            className="inline-flex items-center justify-center rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium px-6 py-3 transition-colors"
+          >
+            使用 Second Me 登录（若授权页可用）
+          </Link>
+        </div>
+        <p className="text-slate-500 text-xs mt-3">
+          Second Me 授权页若无法打开，请使用 GitHub 登录；需在 .env.local 配置 GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET。
+        </p>
         <p className="text-slate-500 text-sm mt-6">
           A2A for Reconnect 黑客松 · 赛道二：Agent 的第三空间
         </p>
