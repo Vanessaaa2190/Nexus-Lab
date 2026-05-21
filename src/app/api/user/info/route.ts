@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, fetchUserInfo, refreshAccessToken, setSessionCookie, fetchGithubUserInfo } from "@/lib/auth";
+import { getSession, fetchUserInfo, refreshAccessToken, sessionToCookie, fetchGithubUserInfo } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   let session = getSession(req.headers.get("cookie") ?? null);
@@ -8,8 +8,13 @@ export async function GET(req: NextRequest) {
   }
   if (session.provider === "github") {
     try {
-      const user = await fetchGithubUserInfo(session.accessToken);
-      return NextResponse.json(user);
+      const user = session.user ?? (await fetchGithubUserInfo(session.accessToken));
+      const res = NextResponse.json(user);
+      if (!session.user) {
+        session = { ...session, user };
+        res.headers.append("Set-Cookie", sessionToCookie(session));
+      }
+      return res;
     } catch (e) {
       console.error("GitHub user info error:", e);
       return NextResponse.json({ error: "获取用户信息失败" }, { status: 502 });
@@ -26,7 +31,7 @@ export async function GET(req: NextRequest) {
     const user = await fetchUserInfo(session.accessToken);
     const res = NextResponse.json(user);
     if (session !== getSession(req.headers.get("cookie") ?? null)) {
-      setSessionCookie(res, session);
+      res.headers.append("Set-Cookie", sessionToCookie(session));
     }
     return res;
   } catch (e) {

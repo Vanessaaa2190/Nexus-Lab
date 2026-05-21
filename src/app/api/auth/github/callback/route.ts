@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeGithubCodeForToken, setSessionCookie } from "@/lib/auth";
+import { exchangeGithubCodeForToken, fetchGithubUserInfo, sessionToCookie } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -16,14 +16,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const accessToken = await exchangeGithubCodeForToken(code);
+    const user = await fetchGithubUserInfo(accessToken);
     const session = {
       provider: "github" as const,
       accessToken,
       refreshToken: "",
       expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      user,
     };
     const res = NextResponse.redirect(new URL("/dashboard", req.url));
-    setSessionCookie(res, session);
+    res.headers.append("Set-Cookie", sessionToCookie(session));
     res.cookies.delete("github_oauth_state");
     return res;
   } catch (e) {

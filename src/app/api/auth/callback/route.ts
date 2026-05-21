@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForToken, setSessionCookie } from "@/lib/auth";
+import { exchangeCodeForToken, sessionToCookie } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await exchangeCodeForToken(code);
     const res = NextResponse.redirect(new URL("/dashboard", req.url));
-    setSessionCookie(res, session);
+    res.headers.append("Set-Cookie", sessionToCookie(session));
     res.cookies.delete("oauth_state");
     return res;
   } catch (e) {
