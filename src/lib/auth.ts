@@ -3,6 +3,8 @@
  * API 文档: https://develop-docs.second.me/zh/docs/api-reference/secondme
  */
 
+import { NextResponse } from "next/server";
+
 const API_BASE = process.env.SECONDME_API_BASE_URL ?? "https://api.mindverse.com/gate/lab";
 const OAUTH_URL = process.env.SECONDME_OAUTH_URL ?? "https://go.second.me/oauth/";
 const COOKIE_NAME = "nexuslab_session";
@@ -30,10 +32,15 @@ function getCookieHeader(cookieHeader: string | null): SessionData | null {
   if (!cookieHeader) return null;
   const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
   if (!match) return null;
+  const raw = match[1];
   try {
-    return JSON.parse(decodeURIComponent(match[1])) as SessionData;
+    return JSON.parse(decodeURIComponent(raw)) as SessionData;
   } catch {
-    return null;
+    try {
+      return JSON.parse(raw) as SessionData;
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -198,8 +205,27 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
   return json.data ?? {};
 }
 
+/** 写入 cookie 的会话字段（不含 user，避免超过 4KB 限制） */
+function sessionCookiePayload(data: SessionData): Omit<SessionData, "user"> {
+  return {
+    provider: data.provider,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken ?? "",
+    expiresAt: data.expiresAt,
+  };
+}
+
+export function setSessionCookie(res: NextResponse, data: SessionData): void {
+  res.cookies.set(COOKIE_NAME, JSON.stringify(sessionCookiePayload(data)), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 24 * 60 * 60,
+  });
+}
+
 export function sessionToCookie(data: SessionData): string {
-  const value = encodeURIComponent(JSON.stringify(data));
+  const value = encodeURIComponent(JSON.stringify(sessionCookiePayload(data)));
   const maxAge = 30 * 24 * 60 * 60;
   return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
 }
