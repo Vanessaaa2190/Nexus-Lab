@@ -9,6 +9,11 @@ function HomeContent() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  const handleGithubLogin = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    window.location.assign(`/api/auth/github/login?t=${Date.now()}`);
+  };
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gradient-to-b from-slate-900 to-slate-800">
       <div className="max-w-xl text-center">
@@ -27,10 +32,13 @@ function HomeContent() {
             {error === "no_code" && "未收到授权码，请重试登录。"}
             {error === "invalid_state" && "登录状态校验失败，请重试。"}
             {error === "token_exchange" && "登录交换失败，请重试。"}
+            {error === "session_missing" &&
+              "登录状态未保存，请重新点击 GitHub 登录。"}
           </p>
         )}
         <a
           href="/api/auth/github/login"
+          onClick={handleGithubLogin}
           className="inline-flex items-center justify-center rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-medium px-6 py-3 transition-colors"
         >
           使用 GitHub 登录进入实验室

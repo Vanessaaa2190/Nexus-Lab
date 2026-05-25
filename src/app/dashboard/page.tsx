@@ -14,7 +14,7 @@ export default function DashboardPage() {
     fetch("/api/user/info", { credentials: "include" })
       .then((r) => {
         if (r.status === 401) {
-          router.replace("/");
+          router.replace("/?error=session_missing");
           return null;
         }
         return r.json();
