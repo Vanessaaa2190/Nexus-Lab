@@ -6,6 +6,12 @@ const OAUTH_URL =
 
 const COOKIE_NAME = "nexuslab_session";
 
+function shouldUseSecureCookies(): boolean {
+  const publicUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? process.env.GITHUB_REDIRECT_URI;
+  return publicUrl?.startsWith("https://") ?? false;
+}
+
 export interface SessionData {
   provider: "secondme" | "github";
   accessToken: string;
@@ -193,7 +199,8 @@ export function buildGithubLoginUrl(
 }
 
 export async function exchangeGithubCodeForToken(
-  code: string
+  code: string,
+  redirectUri?: string
 ): Promise<string> {
   const clientId = process.env.GITHUB_CLIENT_ID;
   const clientSecret = process.env.GITHUB_CLIENT_SECRET;
@@ -213,6 +220,7 @@ export async function exchangeGithubCodeForToken(
       client_id: clientId,
       client_secret: clientSecret,
       code,
+      ...(redirectUri ? { redirect_uri: redirectUri } : {}),
     }),
   });
 
@@ -296,7 +304,8 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
 export function sessionToCookie(data: SessionData): string {
   const value = encodeURIComponent(JSON.stringify(data));
   const maxAge = 30 * 24 * 60 * 60;
-  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`;
+  const secure = shouldUseSecureCookies() ? "; Secure" : "";
+  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
 
 export function setSessionCookie(data: SessionData): string {
@@ -304,5 +313,6 @@ export function setSessionCookie(data: SessionData): string {
 }
 
 export function clearSessionCookie(): string {
-  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+  const secure = shouldUseSecureCookies() ? "; Secure" : "";
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
 }

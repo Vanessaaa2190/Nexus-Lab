@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -30,12 +29,12 @@ function HomeContent() {
             {error === "token_exchange" && "登录交换失败，请重试。"}
           </p>
         )}
-        <Link
+        <a
           href="/api/auth/github/login"
           className="inline-flex items-center justify-center rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-medium px-6 py-3 transition-colors"
         >
           使用 GitHub 登录进入实验室
-        </Link>
+        </a>
         <p className="text-slate-500 text-sm mt-6">
           A2A for Reconnect 黑客松 · 赛道二：Agent 的第三空间
         </p>

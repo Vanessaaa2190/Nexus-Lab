@@ -17,6 +17,13 @@ function redirectUrl(req: NextRequest, path: string): URL {
   return new URL(path, appOrigin);
 }
 
+function githubRedirectUri(req: NextRequest): string {
+  return (
+    process.env.GITHUB_REDIRECT_URI ??
+    redirectUrl(req, "/api/auth/github/callback").toString()
+  );
+}
+
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const code = searchParams.get("code");
@@ -31,7 +38,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const accessToken = await exchangeGithubCodeForToken(code);
+    const accessToken = await exchangeGithubCodeForToken(
+      code,
+      githubRedirectUri(req)
+    );
     const user = await fetchGithubUserInfo(accessToken);
     const session = {
       provider: "github" as const,
