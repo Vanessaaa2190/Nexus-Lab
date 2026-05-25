@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeGithubCodeForToken, fetchGithubUserInfo, sessionToCookie } from "@/lib/auth";
+import {
+  exchangeGithubCodeForToken,
+  fetchGithubUserInfo,
+  sessionToCookie,
+} from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+
+function redirectUrl(req: NextRequest, path: string): URL {
+  const appOrigin = process.env.NEXT_PUBLIC_APP_URL
+    ? new URL(process.env.NEXT_PUBLIC_APP_URL).origin
+    : process.env.GITHUB_REDIRECT_URI
+      ? new URL(process.env.GITHUB_REDIRECT_URI).origin
+      : req.nextUrl.origin;
+
+  return new URL(path, appOrigin);
+}
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -8,10 +24,10 @@ export async function GET(req: NextRequest) {
   const savedState = req.cookies.get("github_oauth_state")?.value;
 
   if (!code) {
-    return NextResponse.redirect(new URL("/?error=no_code", req.url));
+    return NextResponse.redirect(redirectUrl(req, "/?error=no_code"));
   }
   if (state !== savedState) {
-    return NextResponse.redirect(new URL("/?error=invalid_state", req.url));
+    return NextResponse.redirect(redirectUrl(req, "/?error=invalid_state"));
   }
 
   try {
@@ -24,13 +40,12 @@ export async function GET(req: NextRequest) {
       expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
       user,
     };
-    const res = NextResponse.redirect(new URL("/dashboard", req.url));
+    const res = NextResponse.redirect(redirectUrl(req, "/dashboard"));
     res.headers.append("Set-Cookie", sessionToCookie(session));
     res.cookies.delete("github_oauth_state");
     return res;
   } catch (e) {
     console.error("GitHub OAuth callback error:", e);
-    return NextResponse.redirect(new URL("/?error=token_exchange", req.url));
+    return NextResponse.redirect(redirectUrl(req, "/?error=token_exchange"));
   }
 }
-
