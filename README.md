@@ -28,9 +28,9 @@
    ```
 4. 打开 http://localhost:3000 ，点击「使用 Second Me 登录进入实验室」。
 
-## 部署（Zeabur / Vercel 等）
+## 部署（Zeabur）
 
-`.env.local` **不会**随 Git 上传，必须在云平台「环境变量」里单独配置。
+`.env.local` 不会随 Git 上传，必须在 Zeabur 项目环境变量中单独配置。
 
 **GitHub 登录（推荐，必填）：**
 
@@ -38,16 +38,15 @@
 |--------|------|
 | `GITHUB_CLIENT_ID` | GitHub OAuth App 的 Client ID |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth App 的 Client Secret |
+| `GITHUB_REDIRECT_URI` | `https://你的Zeabur域名/api/auth/github/callback` |
 
-在 GitHub OAuth App 中把 **Authorization callback URL** 设为：
+在 GitHub OAuth App 中把 **Authorization callback URL** 设置为同一个地址：
 
-`https://你的线上域名/api/auth/github/callback`
+`https://你的Zeabur域名/api/auth/github/callback`
 
-（Zeabur 示例：`https://nexus-lab-xxx.zeabur.app/api/auth/github/callback`）
+配置后在 Zeabur 重新部署一次，环境变量才会生效。
 
-配置后**重新部署**一次，环境变量才会生效。
-
-**Second Me（可选）：** 若仍使用 Second Me，额外配置 `SECONDME_CLIENT_ID`、`SECONDME_CLIENT_SECRET`、`SECONDME_REDIRECT_URI=https://你的域名/api/auth/callback`。
+**Second Me（可选）：** 若仍使用 Second Me，额外配置 `SECONDME_CLIENT_ID`、`SECONDME_CLIENT_SECRET`、`SECONDME_REDIRECT_URI=https://你的Zeabur域名/api/auth/callback`。
 
 ## 知乎特别奖（可选）
 
