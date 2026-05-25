@@ -16,7 +16,7 @@ export function shouldUseSecureCookies(): boolean {
 export const SESSION_COOKIE_NAME = COOKIE_NAME;
 
 export function sessionCookieValue(data: SessionData): string {
-  return encodeURIComponent(JSON.stringify(data));
+  return JSON.stringify(data);
 }
 
 export function sessionCookieOptions() {
@@ -55,7 +55,12 @@ function getCookieHeader(cookieHeader: string | null): SessionData | null {
   if (!match) return null;
 
   try {
-    return JSON.parse(decodeURIComponent(match[1])) as SessionData;
+    const decoded = decodeURIComponent(match[1]);
+    try {
+      return JSON.parse(decoded) as SessionData;
+    } catch {
+      return JSON.parse(decodeURIComponent(decoded)) as SessionData;
+    }
   } catch {
     return null;
   }
@@ -319,7 +324,7 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
 }
 
 export function sessionToCookie(data: SessionData): string {
-  const value = sessionCookieValue(data);
+  const value = encodeURIComponent(JSON.stringify(data));
   const maxAge = COOKIE_MAX_AGE;
   const secure = shouldUseSecureCookies() ? "; Secure" : "";
   return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
