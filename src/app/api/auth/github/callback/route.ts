@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   exchangeGithubCodeForToken,
   fetchGithubUserInfo,
-  sessionToCookie,
+  sessionCookieOptions,
+  sessionCookieValue,
+  SESSION_COOKIE_NAME,
+  shouldUseSecureCookies,
 } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -51,8 +54,18 @@ export async function GET(req: NextRequest) {
       user,
     };
     const res = NextResponse.redirect(redirectUrl(req, "/dashboard"));
-    res.headers.append("Set-Cookie", sessionToCookie(session));
-    res.cookies.delete("github_oauth_state");
+    res.cookies.set(
+      SESSION_COOKIE_NAME,
+      sessionCookieValue(session),
+      sessionCookieOptions()
+    );
+    res.cookies.set("github_oauth_state", "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: shouldUseSecureCookies(),
+      maxAge: 0,
+      path: "/",
+    });
     return res;
   } catch (e) {
     console.error("GitHub OAuth callback error:", e);

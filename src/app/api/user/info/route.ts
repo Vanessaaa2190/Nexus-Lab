@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, fetchUserInfo, refreshAccessToken, sessionToCookie, fetchGithubUserInfo } from "@/lib/auth";
+import {
+  fetchGithubUserInfo,
+  fetchUserInfo,
+  getSession,
+  refreshAccessToken,
+  sessionCookieOptions,
+  sessionCookieValue,
+  SESSION_COOKIE_NAME,
+} from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   let session = getSession(req.headers.get("cookie") ?? null);
@@ -12,7 +20,11 @@ export async function GET(req: NextRequest) {
       const res = NextResponse.json(user);
       if (!session.user) {
         session = { ...session, user };
-        res.headers.append("Set-Cookie", sessionToCookie(session));
+        res.cookies.set(
+          SESSION_COOKIE_NAME,
+          sessionCookieValue(session),
+          sessionCookieOptions()
+        );
       }
       return res;
     } catch (e) {
@@ -31,7 +43,11 @@ export async function GET(req: NextRequest) {
     const user = await fetchUserInfo(session.accessToken);
     const res = NextResponse.json(user);
     if (session !== getSession(req.headers.get("cookie") ?? null)) {
-      res.headers.append("Set-Cookie", sessionToCookie(session));
+      res.cookies.set(
+        SESSION_COOKIE_NAME,
+        sessionCookieValue(session),
+        sessionCookieOptions()
+      );
     }
     return res;
   } catch (e) {

@@ -5,11 +5,28 @@ const OAUTH_URL =
   process.env.SECONDME_OAUTH_URL ?? "https://go.second.me/oauth/";
 
 const COOKIE_NAME = "nexuslab_session";
+const COOKIE_MAX_AGE = 30 * 24 * 60 * 60;
 
-function shouldUseSecureCookies(): boolean {
+export function shouldUseSecureCookies(): boolean {
   const publicUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? process.env.GITHUB_REDIRECT_URI;
   return publicUrl?.startsWith("https://") ?? false;
+}
+
+export const SESSION_COOKIE_NAME = COOKIE_NAME;
+
+export function sessionCookieValue(data: SessionData): string {
+  return encodeURIComponent(JSON.stringify(data));
+}
+
+export function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: shouldUseSecureCookies(),
+    maxAge: COOKIE_MAX_AGE,
+    path: "/",
+  };
 }
 
 export interface SessionData {
@@ -302,8 +319,8 @@ export async function fetchUserInfo(accessToken: string): Promise<UserInfo> {
 }
 
 export function sessionToCookie(data: SessionData): string {
-  const value = encodeURIComponent(JSON.stringify(data));
-  const maxAge = 30 * 24 * 60 * 60;
+  const value = sessionCookieValue(data);
+  const maxAge = COOKIE_MAX_AGE;
   const secure = shouldUseSecureCookies() ? "; Secure" : "";
   return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
